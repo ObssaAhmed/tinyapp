@@ -39,12 +39,22 @@ app.get("/urls/:id", (req, res) => {
     res.render("urls_show", templateVars);
 });
 
+
 app.post("/urls", (req, res) => {
-    const longURL = req.body.longURL;
     const shortURL = generateRandomString();
-    urlDatabase[shortURL] = longURL;
+    urlDatabase[shortURL] = req.body.longURL;
     res.redirect(`/urls/${shortURL}`);
 });
+
+app.get("/u/:id", (req, res) => {
+    const longURL = urlDatabase[req.params.id];
+    if (longURL) {
+        res.redirect(longURL);
+    } else {
+        res.status(404).send("Not found");
+    }
+});
+
 
 
 function generateRandomString() {
