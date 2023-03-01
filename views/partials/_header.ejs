@@ -11,18 +11,18 @@
                 <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
             </div>
 
-            <% if (user) { %>
-                <div class="navbar-nav ml-auto">
-                    <span class="navbar-text">Logged in as <%= user.email %></span>
-                    <form method="POST" action="/logout" class="form-inline my-2 my-lg-0">
-                        <button class="btn btn-outline-light my-2 my-sm-0" type="submit">Log Out</button>
-                    </form>
-                </div>
+            <% if (!user) { %>
+                <li><a href="/register">Register</a></li>
+                <li><a href="/login">Login</a></li>
                 <% } else { %>
-                    <div class="navbar-nav ml-auto">
-                        <a class="nav-item nav-link" href="/register">Register</a>
-                        <a class="nav-item nav-link" href="/login">Login</a>
-                    </div>
+                    <li>
+                        Logged in as <strong>
+                            <%= user.email %>
+                        </strong>
+                        <form method="POST" action="/logout" style="display: inline-block;">
+                            <button type="submit">Logout</button>
+                        </form>
+                    </li>
                     <% } %>
 
         </div>
