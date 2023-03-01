@@ -19,13 +19,10 @@
                     </form>
                 </div>
                 <% } else { %>
-                    <form method="POST" action="/login" class="form-inline my-2 my-lg-0">
-                        <input class="form-control mr-sm-2" type="text" name="email" placeholder="Email"
-                            aria-label="Email">
-                        <input class="form-control mr-sm-2" type="password" name="password" placeholder="Password"
-                            aria-label="Password">
-                        <button class="btn btn-outline-light my-2 my-sm-0" type="submit">Log In</button>
-                    </form>
+                    <div class="navbar-nav ml-auto">
+                        <a class="nav-item nav-link" href="/register">Register</a>
+                        <a class="nav-item nav-link" href="/login">Login</a>
+                    </div>
                     <% } %>
 
         </div>

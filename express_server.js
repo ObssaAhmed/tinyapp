@@ -128,3 +128,48 @@ app.post("/register", (req, res) => {
     res.redirect("/urls");
 });
 
+const register = (req, res) => {
+    const {email, password} = req.body;
+
+    // Error handling: empty email or password
+    if (!email || !password) {
+        res.status(400).send("Email or password cannot be empty.");
+        return;
+    }
+
+    // Error handling: email already exists
+    const user = getUserByEmail(email);
+    if (user) {
+        res.status(400).send("Email already exists.");
+        return;
+    }
+
+    // Generate a new user ID and add the user to the users object
+    const id = generateRandomString();
+    users[id] = {id, email, password};
+
+    // Set a user_id cookie containing the user's ID
+    res.cookie("user_id", id);
+
+    // Redirect to the /urls page
+    res.redirect("/urls");
+};
+
+const getUserByEmail = (email) => {
+    for (const userId in users) {
+        if (users[userId].email === email) {
+            return users[userId];
+        }
+    }
+    return null;
+};
+
+// routes/userRoutes.js
+
+const router = express.Router();
+
+router.get('/login', (req, res) => {
+    res.render('login');
+});
+
+module.exports = router;
