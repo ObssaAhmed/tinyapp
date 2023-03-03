@@ -11,26 +11,35 @@
 <body>
     <%- include('partials/_header') %>
 
-
-        <div class="card text-center">
-            <div class="card-header"></div>
-            <div class="card-body">
-                <h5 class="card-title">TinyURL for: <%= longURL %>
-                </h5>
-                <p class="card-text">
-                    Short URL ID: <a href="/u/<%= id %>">
-                        <%= id %>
-                    </a>
-                </p>
-                <form method="POST" action="/urls/<%= id %>">
-                    <div class="form-group">
-                        <label for="longURL">Long URL:</label>
-                        <input type="text" class="form-control" id="longURL" name="longURL" value="<%= longURL %>">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card mt-4">
+                        <div class="card-header">Edit URL</div>
+                        <div class="card-body">
+                            <form method="POST" action="/urls/<%= id %>">
+                                <div class="form-group">
+                                    <label for="longURL">Long URL:</label>
+                                    <input type="text" class="form-control" id="longURL" name="longURL"
+                                        value="<%= longURL %>">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </form>
+                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                </form>
+
+                    <div class="card mt-4">
+                        <div class="card-header">URL Details</div>
+                        <div class="card-body">
+                            <h5 class="card-title">TinyURL for: <%= longURL %>
+                            </h5>
+                            <p class="card-text">Short URL ID: <a href="/u/<%= id %>">
+                                    <%= id %>
+                                </a></p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="card-footer text-muted"></div>
         </div>
 
         <!-- Bootstrap JS -->
@@ -43,6 +52,7 @@
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
             integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
             crossorigin="anonymous"></script>
+
 </body>
 
 </html>
