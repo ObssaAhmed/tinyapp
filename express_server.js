@@ -1,8 +1,8 @@
-//express_server.js
 const express = require("express");
 const cookieParser = require('cookie-parser');
 const app = express();
 const PORT = 8080; // default port 8080
+
 
 app.set("view engine", "ejs");
 
@@ -26,7 +26,6 @@ const urlDatabase = {
 };
 
 app.use(express.urlencoded({extended: true}));
-
 app.use(cookieParser());
 
 app.get("/", (req, res) => {
@@ -42,29 +41,28 @@ app.get("/hello", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-    const templateVars = {
-        urls: urlDatabase,
-        username: req.cookies["username"]
-    };
+    const userId = req.cookies.user_id;
+    const user = users[userId];
+    const templateVars = {urls: urlDatabase, user};
     res.render("urls_index", templateVars);
 });
 
+
 app.get("/urls/new", (req, res) => {
-    const templateVars = {
-        username: req.cookies["username"]
-    };
+    const userId = req.cookies.user_id;
+    const user = users[userId];
+    const templateVars = {user};
     res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-    const templateVars = {
-        shortURL: req.params.shortURL,
-        longURL: urlDatabase[req.params.shortURL].longURL,
-        username: req.cookies["username"]
-    };
+    const userId = req.cookies.user_id;
+    const user = users[userId];
+    const shortURL = req.params.shortURL;
+    const longURL = urlDatabase[shortURL].longURL;
+    const templateVars = {shortURL, longURL, user};
     res.render("urls_show", templateVars);
 });
-
 
 app.post("/urls", (req, res) => {
     const shortURL = generateRandomString();
@@ -83,39 +81,29 @@ app.post("/urls/:shortURL/update", (req, res) => {
     urlDatabase[shortURL] = req.body.longURL;
     res.redirect("/urls");
 });
-
-app.post("/urls/:shortURL", (req, res) => {
-    const shortURL = req.params.shortURL;
-    const newLongURL = req.body.longURL;
-    urlDatabase[shortURL].longURL = newLongURL;
-    res.redirect("/urls");
-});
-
-
-
+function getUserByEmail(email) {
+}
 app.post('/login', (req, res) => {
     const {email, password} = req.body;
-    const user = getUserByEmail(email);
-
+    const user = getUserByEmail(email)
     if (!user) {
-        res.status(403).send('Email or password is incorrect');
+        res.status(403).send('Invalid email or password');
         return;
     }
-
     if (!bcrypt.compareSync(password, user.password)) {
-        res.status(403).send('Email or password is incorrect');
+        res.status(403).send('Invalid email or password');
         return;
     }
-
-    res.cookie('user_id', user.id);
+    req.session.user_id = user.id;
     res.redirect('/urls');
-});
+}
+);
 
 
-
-app.post('/logout', (request, response) => {
-    response.clearCookie('user_id');
-    response.redirect('/login');
+app.post('/logout', (req, res) => {
+    req.session = null;
+    res.clearCookie('user_id');
+    res.redirect('/login');
 });
 
 
@@ -145,95 +133,66 @@ function generateRandomString() {
     }
     return result;
 }
-
 app.post('/register', (req, res) => {
     const {email, password} = req.body;
-
-    // Check if email or password is empty
     if (!email || !password) {
-        return res.status(400).send('Email and password are required!');
+        return res.status(400).send('Email and password fields are required!');
     }
-
-    // Check if email already exists
-    if (getUserByEmail(email)) {
-        return res.status(400).send('Email already exists!');
-    }
-
-    // Create new user
-    const user = {
-        id: generateRandomString(),
+    const userId = generateRandomString();
+    const newUser = {
+        id: userId,
         email,
-        password: bcrypt.hashSync(password, 10)
+        password,
     };
-
-    // Add user to users object
-    users[user.id] = user;
-
-    // Set user_id cookie
-    res.cookie('user_id', user.id);
-
-    // Redirect to /urls page
+    users[userId] = newUser;
+    res.cookie('user_id', userId);
     res.redirect('/urls');
 });
-
-
-function getUserByEmail(email) {
-    for (const userId in users) {
-        const user = users[userId];
-        if (user.email === email) {
-            return user;
-        }
-    }
-    return null;
-}
-
-
-const register = (req, res) => {
-    const {email, password} = req.body;
-
-    // Error handling: empty email or password
-    if (!email || !password) {
-        res.status(400).send("Email or password cannot be empty.");
-        return;
-    }
-
-    // Error handling: email already exists
-    const user = getUserByEmail(email);
-    if (user) {
-        res.status(400).send("Email already exists.");
-        return;
-    }
-
-    // Generate a new user ID and add the user to the users object
-    const id = generateRandomString();
-    users[id] = {id, email, password};
-
-    // Set a user_id cookie containing the user's ID
-    res.cookie("user_id", id);
-
-    // Redirect to the /urls page
-    res.redirect("/urls");
+const getUserById = (id) => {
+    return Object.values(users).find(user => user.id === id);
 };
 
-
-
-
-// routes/userRoutes.js
-
-const router = express.Router();
-
-router.get('/login', (req, res) => {
-    res.render('login');
+app.use((req, res, next) => {
+    const userId = req.cookies.user_id;
+    if (userId) {
+        const user = getUserById(userId);
+        res.locals.user = user;
+    }
+    next();
 });
 
-module.exports = router;
+app.get('/login', (req, res) => {
+    res.render('login.ejs');
+});
 
-app.get("/login", (req, res) => {
-    res.render("login");
+app.listen(3000, () => {
+    console.log('Server started on port 3000');
 });
 
 
-app.post("/logout", (req, res) => {
-    res.clearCookie("username");
-    res.redirect("/urls");
+const requireLogin = (req, res, next) => {
+    if (!req.session.user_id) {
+        res.redirect('/login');
+    } else {
+        next();
+    }
+};
+app.get('/login', (req, res) => {
+    if (req.session.user_id) {
+        res.redirect('/urls');
+    } else {
+        res.render('login');
+    }
+});
+
+app.get('/register', (req, res) => {
+    if (req.session.user_id) {
+        res.redirect('/urls');
+    } else {
+        res.render('register');
+    }
+});
+
+app.get('/urls/new', requireLogin, (req, res) => {
+    res.render('urls_new');
 });
